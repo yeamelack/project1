@@ -21,11 +21,22 @@ int main(int argc, char *argv[]) {
         else if(pid == 0){
             pids[index] =  getpid();
             start_timer(&timer[index]);
-            if(execl('/home/erist003/4061/p1/submission.txt', buff)==-1){
-
+            int ans = execl("/home/erist003/4061/p1/submission.txt", buff);
+            if(ans == -1){
+                perror("execl failed, try again");
+                stop_timer(&timer[index]);
+            }
+            if(ans == 1){
+                stop_timer(&timer[index]);
+                return 0;
+            }
+            if(ans == 1){
+                stop_timer(&timer[index]);
+                return 1;
             }
             
-            stop_timer(&timer[index]);
+            //stop_timer(&timer[index]);
         }
     }
 }     
+
