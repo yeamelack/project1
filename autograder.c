@@ -14,26 +14,22 @@ int main(int argc, char *argv[]) {
     char buff[128];
 
     while(fgets(buff, sizeof(buff), file) != NULL){
+        buff[strcspn(buff, "\n")] = 0;
         pid_t pid = fork();
+
         if(pid > 0){
             pid_t terminated_pid = wait(NULL);
         }
         else if(pid == 0){
             pids[index] =  getpid();
             start_timer(&timer[index]);
-            int ans = execl("/home/erist003/4061/p1/submission.txt", buff);
+
+            int ans = execl(buff, buff, NULL);
             if(ans == -1){
                 perror("execl failed, try again");
                 stop_timer(&timer[index]);
             }
-            if(ans == 1){
-                stop_timer(&timer[index]);
-                return 0;
-            }
-            if(ans == 1){
-                stop_timer(&timer[index]);
-                return 1;
-            }
+           
             
             //stop_timer(&timer[index]);
         }
