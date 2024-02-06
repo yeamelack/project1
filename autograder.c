@@ -1,57 +1,55 @@
 #include "include/utility.h"
 #include <stdio.h>
+#define WORD_LEN 128
 
 
 int main(int argc, char *argv[]) {
     
-    write_filepath_to_submissions("/home/erist003/4061/p1/test", "/home/erist003/4061/p1/submission.txt");
+    write_filepath_to_submissions("/home/lexxx668/4061/p1/test", "/home/lexxx668/4061/p1/submission.txt");
     FILE *file = fopen("submission.txt", "r");
     if(!file){
         return -1;
     }
-    int index = 0;
+    int i = 0;
+    int index = 2;
     pid_t pids[argc];
     struct timeval timer[argc];
     char buff[128];
-
+    int numStudents = atoi(argv[1]);
+    char students[numStudents][WORD_LEN];
+    
     while(fgets(buff, sizeof(buff), file) != NULL){
         buff[strcspn(buff, "\n")] = 0;
-       
-        pid_t pid = fork();
-
-        if(pid > 0){
-            pid_t terminated_pid = wait(NULL);
-        }
-        else if(pid == 0){
-            pids[index] =  getpid();
-            start_timer(&timer[index]);
-
-            for(int i = 0; i < argc; i++){
-                char string[20];
-                sprintf(string, "%d", i);
-                memset(string, 0, sizeof(string));
-                int ans = execl(buff, buff, string, NULL);
-
-
-            if(ans == -1){
-                perror("execl failed, try again");
-                stop_timer(&timer[index]);
-            }
-
-
-            }
-            
-            
-            // if(ans == -1){
-            //     perror("execl failed, try again");
-            //     stop_timer(&timer[index]);
-            // }
-           
-            
-            //stop_timer(&timer[index]);
-        }
+        strcpy(students[i], buff);
+        i++;
     }
+    for (int k = 2; k < argc; k++){
+        printf("\n");
+        printf("Argument at k is: %d\n", k);
+        for (int j = 0; j < numStudents; j++){
+            printf("\n");
+            printf("j is: %d\n", j);
+            pid_t pid = fork();
+            if(pid > 0){
+                pid_t terminated_pid = wait(NULL);
+                index++;            
+            }
+            else if(pid == 0){
+                pids[index] = getpid();
+                printf("Pid id is: %d\n", pids[index]);
+                // printf("\n");
+                // printf("index is: %d\n", j);
+                // start_timer(&timer[index]);
+
+                printf("%s\n", students[j]);
+                printf("argument: %s\n", argv[k]);
+                execl(students[j], argv[1], argv[k], NULL);
+                    
+            }
+        }
+        
+    }
+    
     fclose(file);
     return 0;
 }     
-
