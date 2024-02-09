@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     for(int i=0; i < 1; i++){
         for(int j=0; j < 1; j++){
             pid_t pid = fork();
-            if(pid>0){
+            if(pid > 0){
                     pid_t terminated_pid = wait(NULL);
                 }
                 else if(pid == 0){
@@ -33,45 +33,35 @@ int main(int argc, char *argv[]) {
                     execl(students[i], argv[1], argv[j+2], NULL);
                 }
                 while(finishedpid < numStudents){
-                
-             
+                    
                     int status = 0;
                     int finished = waitpid(pids[j], &status, WNOHANG);
-
+                    printf("%s%d", "\n", finished);
                     if(finished > 0){
                         if(WIFEXITED(status)){
                             int ret = WEXITSTATUS(status);
                             if(ret == 0){
                                 printf("%s", "correct \n");
-                                
                                 finishedpid++;
-                            
-                            
                             }
                             else if(ret == 1){
                                 printf("%s", "incorrect\n");
-                                finishedpid++;
-                            
+                                finishedpid++;   
                             }
                             else if(ret == 3){
                                 printf("%s", "seg fault\n");
                                 finishedpid++;
-                        
                             }
                             else{
                                 break;
                             }
                         }
-                        }
                     }
                 }
-            finishedpid = 0;
-            if(i<3){
-                //memset(pids, 0, sizeof(pids)); 
+            }
                 
 
-                break;
-            }
+         break;
 
         }
     
