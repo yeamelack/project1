@@ -24,58 +24,68 @@ int main(int argc, char *argv[]) {
         k++;
     }
     fclose(file);
-    pid_t terminated_pid;
 
-    pid_t pids[argc];
+    pid_t pids[numStudents];
+    
    
     int finishedpid = 0;
 
-    for(int i=2; i < argc; i++){
+    for(int i=0; i < argc; i++){//running through arguments 
         for(int j=0 ; j < numStudents; j++){
             pid_t pid = fork();
             if(pid > 0){
-                    pid_t terminated_pid = wait(NULL);
+                
+                  pid_t terminated_pid = wait(NULL);
                 }
                 else if(pid == 0){
                     //printf("%d", pids[j]);
                     pids[j] = getpid();
-                    //printf("%s%s%s", "\nmake", students[j], "\n");
-                    execl(students[i], argv[1], argv[j+2], NULL);
-                    
+                    //printf("%d%s", pids[j], "\n");
+                    //execl(students[i], argv[1], argv[j+2], NULL);
+                    //printf("%s%s", students[j],"\n\n");
+                    //execl(students[j], argv[1], argv[i], NULL);
+                  
                 }
+                    for(int h=0; h<6; h++){
+                        printf("%d\n", pids[h]);
 
-                while(finishedpid < numStudents){
-                    break;
-                    int status = 0;
-                    //printf("%s%d", "\n", pids[j]);
-                    int finished = waitpid(pids[j], &status, WNOHANG);
-                    printf("%s%d", "\n", finished);
-
-                    if(finished > 0){
-                        if(WIFEXITED(status)){
-                            int ret = WEXITSTATUS(status);
-                            if(ret == 0){
-                                printf("%s", "correct \n");
-                                finishedpid++;
-                            }
-                            else if(ret == 1){
-                                printf("%s", "incorrect\n");
-                                finishedpid++;   
-                            }
-                            else if(ret == 3){
-                                printf("%s", "seg fault\n");
-                                finishedpid++;
-                            }
-                            else{
-                                break;
-                            }
-                        }
                     }
-                }
-            }
-         break;
-        }
-    
+            //     while(finishedpid < numStudents){
+            //         int status = 0;
+            //         //printf("%s%d", "\n", pids[j]);
+            //         int finished = waitpid(pids[j], &status, WNOHANG);
+            //         //printf("%s%s", students[i], "\n");
+            //         //printf("%d%s", pids[j],"\n\n");
+            //         break;
+                    
 
+            //         if(finished > 0){
+            //             if(WIFEXITED(status)){
+            //                 int ret = WEXITSTATUS(status);
+            //                 if(ret == 0){
+            //                     printf("%s", "correct \n");
+            //                     finishedpid++;
+            //                     break;
+            //                 }
+            //                 else if(ret == 1){
+            //                     printf("%s", "incorrect\n");
+            //                     finishedpid++;   
+            //                 }
+            //                 else if(ret == 3){
+            //                     printf("%s", "seg fault\n");
+            //                     finishedpid++;
+            //                 }
+            //                 else{
+            //                     break;
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            
+        }
+    }
+                
+    
     return 0;
 }  
