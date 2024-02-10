@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <signal.h>
 #include "include/utility.h"
 #include <stdio.h>
 #include <stdint.h> 
@@ -17,6 +19,8 @@ int main(int argc, char *argv[]) {
     char buff[128];
     int numStudents = atoi(argv[1]);
     char students[numStudents][WORD_LEN];
+    int count = 0;
+    int inc = 0;
     
     while(fgets(buff, sizeof(buff), file) != NULL){
         buff[strcspn(buff, "\n")] = 0;
@@ -24,6 +28,7 @@ int main(int argc, char *argv[]) {
         k++;
     }
     fclose(file);
+
     pid_t pids[numStudents];
     int finishedpid = 0;
     int i, j;
@@ -32,7 +37,9 @@ int main(int argc, char *argv[]) {
         for(j=0 ; j < numStudents; j++){    
             int pid = fork();
             if(pid > 0){
-                pids[j] = pid;
+                pids[inc] = pid;
+                inc++;
+                printf("%s%d %d\n", "in if inc ", inc, pids[inc]);
                 }
                 else if(pid == 0){
                     //printf("%d%s", pids[j],"\n\n");
@@ -44,56 +51,65 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "Fork failed\n");
                     return 1;
                 }
-                printf("\n%d\n", finishedpid);
-                printf("%d\n", finishedpid);
-                while(finishedpid <= numStudents){
+                //printf("\n%d\n", finishedpid);
+                //printf("%d\n", finishedpid);
+            }
+            //printf("%d%s", pids[0],"\n\n");
+            inc = 0;
+            while(finishedpid <= numStudents){
+                    printf("%s%d%s","in loop ", pids[inc],"\n");
 
-                    pids[j] = getpid();
+                    pids[inc] = getpid();
                     //printf("%d%s",pids[j] ,"\n\n");
                     
                     int status = 0;
                     //printf("%s%d", "\nhi", pids[j]);
-
-                    int finished = waitpid(-1, &status, WNOHANG);
-                    //printf("%d", finished);
+                   // printf("%d\n", pids[j]);
+                    int finished = waitpid(pids[0], &status, WNOHANG);
+                    inc++;
                     if(finished == -1){
-                        printf("%s", "lala");
-                        kill(pids[j], SIGKILL);
+
+                        printf("\n%d\n", 9090);
+                        pids[0] = 0;
                         finishedpid++;
-                       
+                        break;
                     }
-                    
+
                     if(finished > 0){
                         if(WIFEXITED(status)){
                             int ret = WEXITSTATUS(status);
                             if(ret == 0){
                             
                                 printf("%s", "correct \n");
-                                printf("%s\n", argv[i]);
+                                //printf("%s\n", argv[i]);
+                                pids[0] = 0;
                                 finishedpid++;
                                 break;
                             }
                             else if(ret == 1){
                                 printf("%s", "incorrect\n");
                                 finishedpid++; 
-                                printf("%s\n", argv[i]);
+                                pids[0] = 0;
+                                //printf("%s\n", argv[i]);
                                  
                             }
                             else if(ret == 3){
                                 printf("%s", "seg fault\n");
                                 finishedpid++;
-                                printf("%s\n", argv[i]);
+                                pids[0] = 0;
+                                //printf("%s\n", argv[i]);
                             }
                             else if(ret == 6){
                                 printf("%s", "seg fault\n");
                                 finishedpid++;
-                                printf("%s\n", argv[i]);
+                                pids[0] = 0;
+                                //printf("%s\n", argv[i]);
                             }
                         }
                     }
+        
                 }
-            }
-            
+                inc = 0;
         }
         
         return 0;
