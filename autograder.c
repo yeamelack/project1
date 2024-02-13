@@ -7,7 +7,23 @@
 
 
 int main(int argc, char *argv[]) {
-
+        int casecheck(pid_t pid){
+            char ans[255];
+            char path[255];
+            
+            snprintf(path, sizeof(path), "/proc/%d/status", pid);
+            FILE *file = fopen(path, "r");
+    
+            if (file == NULL) {
+                perror("Error opening file");
+                return -1;
+            }
+    
+            fgets(ans, sizeof(ans), file);
+            fclose(file);
+    
+            return strcmp(ans[1], "r");
+    }
     write_filepath_to_submissions("/home/lexxx668/4061/p1/test", "/home/lexxx668/4061/p1/submission.txt");
     FILE *file = fopen("submission.txt", "r");
       if(!file){
