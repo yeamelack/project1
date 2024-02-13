@@ -5,33 +5,37 @@
 #include <stdint.h> 
 #define WORD_LEN 128
 
+int casecheck(pid_t pid){
+    char ans[255];
+    char path[255];
+
+    snprintf(path, sizeof(path), "/proc/%d/status", pid);
+    FILE *file = fopen(path, "r");
+
+    if (file == NULL) {
+        perror("Error opening file");
+        return -1;
+    }
+
+    fgets(ans, sizeof(ans), file);
+    fclose(file);
+
+    return strcmp(ans[1], "r");
+}
+
+
+
 
 int main(int argc, char *argv[]) {
-        int casecheck(pid_t pid){
-            char ans[255];
-            char path[255];
-            
-            snprintf(path, sizeof(path), "/proc/%d/status", pid);
-            FILE *file = fopen(path, "r");
-    
-            if (file == NULL) {
-                perror("Error opening file");
-                return -1;
-            }
-    
-            fgets(ans, sizeof(ans), file);
-            fclose(file);
-    
-            return strcmp(ans[1], "r");
-    }
-    write_filepath_to_submissions("/home/lexxx668/4061/p1/test", "/home/lexxx668/4061/p1/submission.txt");
+    write_filepath_to_submissions("/home/erist003/4061/p1/test", "/home/erist003/4061/p1/submission.txt");
     FILE *file = fopen("submission.txt", "r");
       if(!file){
         return -1;
     }
+
+
+    
     int k = 0;
-    struct timeval timer[argc];
-    char buff[128];
     int numStudents = atoi(argv[1]);
     char scores[numStudents][WORD_LEN];
     char students[numStudents][WORD_LEN];
@@ -42,20 +46,30 @@ int main(int argc, char *argv[]) {
     int batch = 1;
     int i, j;
     
+
+
+    char buff[128];
     while(fgets(buff, sizeof(buff), file) != NULL){
+
         buff[strcspn(buff, "\n")] = 0;
         strcpy(scores[k], buff);
         strcpy(students[k], buff);
         k++;
+
     }
     fclose(file);
+
+
+
     for(i = 2; i < argc; i++){//running through arguments 
+
 
         int finishedpid = 0;  
         pid_t pid;    
         printf("\nbatch %d\n", batch);
         inc = 0;
         for (j = 0; j < numStudents; j++){
+            
             strcat(scores[j], " ");
             strcat(scores[j], argv[i]);
 
@@ -107,15 +121,16 @@ int main(int argc, char *argv[]) {
                     finishedpid++;
                     done = 1;
                 }
-                else if (pidStatus > 0 && iter == L){
+                else if (pidStatus > 0 && iter == L && casecheck(pids[i]) == -1){
                     printf("child %d finished\n", pidStatus);
                     printf("Infinite loop\n");
                     strcat(scores[i], " infinite");
-                    // kill(getpid(), SIGKILL);
+                    kill(pids[i], SIGKILL);
+                    
                     finishedpid++;
                     done = 1;
                 }
-                else if (pidStatus > 0 && iter > S){
+                else if (pidStatus > 0 && iter > S && casecheck(pids[i])){
                     printf("child %d finished\n", pidStatus);
                     printf("slow process\n");
                     strcat(scores[i], " slow process");
