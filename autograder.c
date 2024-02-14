@@ -5,23 +5,36 @@
 #include <stdint.h> 
 #define WORD_LEN 128
 
-int casecheck(pid_t pid){
+int casecheck(pid_t pid) {
     char ans[255];
     char path[255];
 
     snprintf(path, sizeof(path), "/proc/%d/status", pid);
     FILE *file = fopen(path, "r");
- 
+
     if (file == NULL) {
         perror("Error opening file");
         return -1;
     }
 
-    fgets(ans, sizeof(ans), file);
-    fclose(file);
+    while (fgets(ans, sizeof(ans), file) != NULL) {
+        if (strncmp(ans, "State:", 6) == 0) {
+            fclose(file);
+            printf("State: %s\n", ans);
+            if (ans[7] == 'R' || ans[7] == 'r') {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
 
-    return strcmp(ans[1], "r");
+    fclose(file);
+    return 0;  // If state not found, consider it as not running
 }
+
+
+
 
 int main(int argc, char *argv[]) {
     write_filepath_to_submissions("/home/erist003/4061/p1/test", "/home/erist003/4061/p1/submission.txt");
@@ -30,6 +43,8 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+
+    
     int k = 0;
     int numStudents = atoi(argv[1]);
     char scores[numStudents][WORD_LEN];
@@ -41,6 +56,8 @@ int main(int argc, char *argv[]) {
     int batch = 1;
     int i, j;
     
+
+
     char buff[128];
     while(fgets(buff, sizeof(buff), file) != NULL){
 
@@ -52,13 +69,17 @@ int main(int argc, char *argv[]) {
     }
     fclose(file);
 
+
+
     for(i = 2; i < argc; i++){//running through arguments 
+
+
         int finishedpid = 0;  
         pid_t pid;    
         printf("\nbatch %d\n", batch);
         inc = 0;
         for (j = 0; j < numStudents; j++){
-    
+            
             strcat(scores[j], " ");
             strcat(scores[j], argv[i]);
 
@@ -103,14 +124,14 @@ int main(int argc, char *argv[]) {
                     finishedpid++;       
                     done = 1;
                 }
-                else if (casecheck(pids[i]) == -1){
+                else if (iter > L){
                     printf("child %d finished\n", pidStatus);
                     printf("Stuck/blocked\n");
                     strcat(scores[i], " stuck");
                     finishedpid++;
                     done = 1;
                 }
-                else if (pidStatus > 0 && casecheck(pids[i]) == -1 && !(WIFSIGNALED(status) > 0)){
+                else if (pidStatus > 0 && iter == L && casecheck(pids[i]) == -1){
                     printf("child %d finished\n", pidStatus);
                     printf("Infinite loop\n");
                     strcat(scores[i], " infinite");
@@ -119,7 +140,7 @@ int main(int argc, char *argv[]) {
                     finishedpid++;
                     done = 1;
                 }
-                else if (pidStatus > 0 && iter > S && casecheck(pids[i] && WIFEXITED(status) > 0)){
+                else if (pidStatus > 0 && iter > S && casecheck(pids[i])){
                     printf("child %d finished\n", pidStatus);
                     printf("slow process\n");
                     strcat(scores[i], " slow process");
@@ -169,6 +190,7 @@ int main(int argc, char *argv[]) {
         if (strlen(scores[i]) > 0) {
             printf("\n%s\n",scores[i]);
         }
+
     }       
     return 0;
  }        
