@@ -64,17 +64,20 @@ int main(int argc, char *argv[]) {
         iter++;
     }
     for(int i =0 ;i<total_executables; i++){
-    printf("array stu %s\n", students[i] );
+    printf("array stu %s\n", students[i]);
     }
+    
+
 
     pid_t pids[batch_size];
     int count = 0;
     
     for(int i = 2; i < argc; i++){
         int done_executables = 0;
-
+        count = 0;
         while (done_executables < total_executables){
             for(int j = 0; j < batch_size; j++){
+                //printf("j is %d\n", j);
                 pid_t pid = fork();
                     if (pid < 0) {
                         perror("fork failed");
@@ -94,7 +97,8 @@ int main(int argc, char *argv[]) {
                         
                     }       
                 count++;
-                
+                printf("count is %d\n", count);
+        
             }
 
             // for(int i=0; i<2; i++){
