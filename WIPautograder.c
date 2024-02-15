@@ -84,8 +84,8 @@ int main(int argc, char *argv[]) {
                         return 1;
                     }
                     else if(pid == 0){
-                        printf("student: %s, answer%s, pid: %d\n", students[count], argv[i], getpid());
-                        printf("get pid %d\n", getpid());
+                        //printf("student: %s, answer%s, pid: %d\n", students[count], argv[i], getpid());
+                        //printf("get pid %d\n", getpid());
                         //start_timer(&start);
                         execl(students[count], argv[1], argv[i], NULL);
                         perror("exec failed\n");
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
                         
                     }       
                 count++;
-                printf("count is %d\n", count);
+                //printf("count is %d\n", count);
         
             }
 
@@ -107,24 +107,38 @@ int main(int argc, char *argv[]) {
             
 
             int finished = 0;
-            // while(finished < batch_size){
-                for(int i=0; i<2; i++){
-                    printf("pids array at %d is %d:\n", i, pids[i]);
-                }
+            while(finished < batch_size){
+                sleep(1);
+                // for(int i=0; i<2; i++){
+                //     printf("pids array at %d is %d:\n", i, pids[i]);
+                // }
                 for(int k=0; k < batch_size; k++){
                     int status = 0;
-                    printf("child getting checked %d pids at %d\n",k, pids[k]);
+                   // printf("child getting checked %d pids at %d\n",k, pids[k]);
 
                     int pidStatus = waitpid(pids[k], &status, WNOHANG);
-                    printf("pidstat getting checked %d\n", pidStatus);
+                    //printf("pidstat getting checked %d\n", pidStatus);
                         if(pidStatus == -1){
                             printf("error in process\n");
                             pids[0] = 0;
-                            finished++;             
+           
                         }
 
-                        if (pidStatus == 0){
-                            printf("child processes still running\n");
+                    else if (pidStatus == 0 && casecheck(pids[k]) == 0){ //STUCK BLOCKED NEEDS CHECK
+                        printf("child %d finished\n", pidStatus);
+                        printf("Stuck/blocked\n\n");
+                        finished++;
+                    }
+                    else if (pidStatus == 0 && casecheck(pids[k]) == 1){//INFINITE NEEDS CHECK
+                        // printf("get pid %d\n", getpid());
+                        printf("child %d finished\n", pidStatus);
+                        printf("Infinite loop\n");
+                        kill(pids[k], SIGKILL);
+                        finished++;
+                }
+                if (pidStatus == 0){
+                            //printf("child processes still running\n");
+                            sleep(1);
                         }
 
                          // if pidstatus is greater than 0 it means child terminated 
@@ -134,18 +148,30 @@ int main(int argc, char *argv[]) {
                         //checking the return status of the succesfully terminated child
                         int ret = WEXITSTATUS(status);
                         if(ret == 0){ // CORRECT
-                            printf("%s", "correct \n");
-
-                            pids[i] = 0;
+                            printf("pid: %d %s", pids[k], "correct \n");
+                            sleep(1);
+                            pids[k] = 0;
                             finished++;
                         }
                         else if(ret == 1){ //INCORRECT
-                            printf("%s", "incorrect\n");
-
+                            printf("pid: %d %s", pids[k] , "incorrect\n");
+                            sleep(1);
                             finished++; 
-                            pids[i] = 0;
+                            pids[k] = 0;
                         }
+                        
                     }
+                    else if (WIFSIGNALED(status) > 0) { //SEGFAULT GOOD
+                            printf("%s", "incorrect seg fault\n");
+                            finished++; 
+                            pids[k] = 0;
+                    }
+
+
+
+
+
+
 
 
 
@@ -153,15 +179,16 @@ int main(int argc, char *argv[]) {
                 }
 
             }
+            sleep(1);
             
-            printf("done exe %d\n", done_executables);
-            printf("total exe %d\n", total_executables);
+            // printf("done exe %d\n", done_executables);
+            // printf("total exe %d\n", total_executables);
          }
          done_executables += batch_size;
+        
 
 
-
-
+        }
         
 
 
