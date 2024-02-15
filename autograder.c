@@ -34,165 +34,147 @@ int casecheck(pid_t pid) {
 }
 
 int main(int argc, char *argv[]) {
-    write_filepath_to_submissions("test_solutions", "submission.txt");
+
+    write_filepath_to_submissions("test_solutions2", "submission.txt");
     FILE *file = fopen("submission.txt", "r");
       if(!file){
         return -1;
     }
 
-    int k = 0;
-    int numStudents = atoi(argv[1]);
-    char scores[numStudents][WORD_LEN];
-    char students[numStudents][WORD_LEN];
-    int count = 0;
-    int inc = 0;
-    pid_t pids[numStudents];
-    int finishedpid = 0;
-    int batch = 1;
-    int i, j;
-    
-    
+    int total_executables = 0;
     char buff[128];
     while(fgets(buff, sizeof(buff), file) != NULL){
-        buff[strcspn(buff, "\n")] = 0;
-        strcpy(scores[k], buff);
-        strcpy(students[k], buff);
-        k++;
+        total_executables++;
     }
-    fclose(file);
+    rewind(file);
+    printf("student array: %d\n", total_executables);
 
+    // char scores[total];
+    char students[total_executables][WORD_LEN];
+   
+    int batch_size = atoi(argv[1]);
+  
+    int iter = 0;
+    while(fgets(buff, sizeof(buff), file) != NULL){
+        buff[strcspn(buff, "\n")] = 0;
+        strcpy(students[iter], buff);
+        iter++;
+    }
+    for(int i =0 ;i<total_executables; i++){
+    printf("array stu %s\n", students[i]);
+    }
+    
 
-
-
-
-    for(i = 2; i < argc; i++){//running through parameters
-        int finishedpid = 0;  
-        pid_t pid;    
-        // printf("\nbatch %d\n", batch);
-        inc = 0;
-        for (j = 0; j < atoi(argv[1]); j++){// RUNNING THROUGH EXECUTABLES
-            // strcat(scores[j], " ");
-            // strcat(scores[j], argv[i]);
-            pid = fork();
-            if (pid < 0) {
-                fprintf(stderr, "Fork failed\n");
-                return 1;
+    struct timeval start;
+    int timer[total_executables];
+    pid_t pids[batch_size];
+    int count = 0;
+    
+    for(int i = 2; i < argc; i++){
+        int done_executables = 0;
+        count = 0;
+        while (done_executables < total_executables){
+            for(int j = 0; j < batch_size; j++){
+                //printf("j is %d\n", j);
+                start_timer(&start);
+                pid_t pid = fork();
+                    if (pid < 0) {
+                        perror("fork failed");
+                        return 1;
+                    }
+                    else if(pid == 0){
+                        //printf("student: %s, answer%s, pid: %d\n", students[count], argv[i], getpid());
+                        //printf("get pid %d\n", getpid());
+                        execl(students[count], argv[1], argv[i], NULL);
+                        perror("exec failed\n");
+                        exit(1);
+                    }
+                    else {
+                        pids[j] = pid;
+                        printf("%s %d %d\n", "child ", j, pids[j]);
+                        
+                    }       
+                count++;
+                //printf("count is %d\n", count);
+        
             }
-            else if(pid == 0){
-                // printf("student: %s, answer%s, pid: %d\n", students[j], argv[i], getpid());
-                printf("get pid %d\n", getpid());
 
-                execl(students[j], argv[1], argv[i], NULL);
-                perror("exec failed\n");
-                exit(1);
-            }
-            else {
-                pids[inc] = pid;
-                // printf("%s %d %d\n", "child ", inc, pids[inc]);
-                inc++;
-            }           
-        }
-        printf("\n");
-        inc = 0;
-        int done = 0;
-        int i = 0;
-        int iter = 0;
+            // for(int i=0; i<2; i++){
+            //         printf("pids array at %d is %d:\n", i, pids[i]);
+            //     }
+            
 
+            int finished = 0;
+            while(finished < batch_size){
+                sleep(1);
+                // for(int i=0; i<2; i++){
+                //     printf("pids array at %d is %d:\n", i, pids[i]);
+                // }
+                for(int k=0; k < batch_size; k++){
+                    int status = 0;
+                   // printf("child getting checked %d pids at %d\n",k, pids[k]);
 
-        while(finishedpid < atoi(argv[1])){
-            sleep(1);        
-            while (done == 0){
-                // printf("\niter is; %d", iter);
-                int status = 0;
-                printf("\npid getting checked %d\n", pids[i]);
-                int pidStatus = waitpid(pids[i], &status, WNOHANG);
-                printf("pid status %d\n", pidStatus);
-                printf("Exit stat %d\n", WIFEXITED(status));
-                printf("iter is %d\n", iter);
-                if(pidStatus == -1){ //ERROR 
-                    printf("error in process\n");
-                    pids[i] = 0;
-                    finishedpid++;       
-                    // done = 1;
+                    int pidStatus = waitpid(pids[k], &status, WNOHANG);
+                    timer[k] = stop_timer(&start);
+                    printf("\ntimer: %d\n\n", timer[k]);
+                    //printf("pidstat getting checked %d\n", pidStatus);
+                        if(pidStatus == -1){
+                            printf("error in process\n");
+                            pids[0] = 0;
+           
+                        }
+
+                    else if (pidStatus == 0 && casecheck(pids[k]) == 0){ //STUCK BLOCKED NEEDS CHECK
+                        printf("child %d finished\n", pidStatus);
+                        printf("Stuck/blocked\n\n");
+                        finished++;
+                    }
+                    else if (pidStatus == 0 && casecheck(pids[k]) == 1){//INFINITE NEEDS CHECK
+                        // printf("get pid %d\n", getpid());
+                        printf("child %d finished\n", pidStatus);
+                        printf("Infinite loop\n");
+                        kill(pids[k], SIGKILL);
+                        finished++;
                 }
-                //casecheck(pids[i]) == -1
-                else if (pidStatus == 0 && casecheck(pids[i]) == 0){ //STUCK BLOCKED NEEDS CHECK
-                    printf("child %d finished\n", pidStatus);
-                    printf("Stuck/blocked\n\n");
-                    strcat(scores[i], " stuck");
-                    finishedpid++;
-                    done = 1;
-                }
-                //!(WIFSIGNALED(status) > 0)   
-                else if (pidStatus == 0 && casecheck(pids[i]) == 1){//INFINITE NEEDS CHECK
-                    // printf("get pid %d\n", getpid());
-                    printf("child %d finished\n", pidStatus);
-                    printf("Infinite loop\n");
-                    strcat(scores[i], " infinite");
-                    kill(pids[i], SIGKILL);
-                    iter = 0;
-                    finishedpid++;
-                    done = 1;
-                }
-                if (pidStatus == 0){ // NO CHILD HAS COMPLETE
-                    printf("no child proccess has complete\n\n");
-                    printf("iter %d", iter);
-                    sleep(1);
-                    iter++;
-                }
-                //SLOW PROCESS NEEDS WORK         *WIFEXITED returns 0 bad termination 0 > for normal
-                else if (pidStatus > 0 && iter > S && casecheck(pids[i] == 1) && WIFEXITED(status) > 0){ //&& WIFEXITED(status) > 0)
-                    printf("child %d finished\n", pidStatus);
-                    printf("slow process\n");
-                    strcat(scores[i], " slow process");
-                    finishedpid++;
-                    done = 1;
-                }
-                // if pidstatus is greater than 0 it means child terminated 
-                else if (pidStatus > 0){//BRANCH GOOD
+                if (pidStatus == 0){
+                            //printf("child processes still running\n");
+                            sleep(1);
+                        }
+
+                         // if pidstatus is greater than 0 it means child terminated 
+                if (pidStatus > 0){//BRANCH GOOD
                     // if what WIFEXITED returns is > 0 it means the child succesfully terminated
                     if(WIFEXITED(status) > 0){ 
                         //checking the return status of the succesfully terminated child
                         int ret = WEXITSTATUS(status);
                         if(ret == 0){ // CORRECT
-                            printf("%s", "correct \n");
-                            strcat(scores[i], " correct");
-                            pids[i] = 0;
-                            finishedpid++;
-                            done = 1;
+                            printf("pid: %d %s", pids[k], "correct \n");
+                            sleep(1);
+                            pids[k] = 0;
+                            finished++;
                         }
                         else if(ret == 1){ //INCORRECT
-                            printf("%s", "incorrect\n");
-                            strcat(scores[i], " incorrect");
-                            finishedpid++; 
-                            pids[i] = 0;
-                            done = 1;
+                            printf("pid: %d %s", pids[k] , "incorrect\n");
+                            sleep(1);
+                            finished++; 
+                            pids[k] = 0;
                         }
+                        
                     }
                     else if (WIFSIGNALED(status) > 0) { //SEGFAULT GOOD
-                        printf("%s", "incorrect seg fault\n");
-                        strcat(scores[i], " seg fault");
-                        finishedpid++; 
-                        pids[i] = 0;
-                        done = 1;
+                            printf("%s", "incorrect seg fault\n");
+                            finished++; 
+                            pids[k] = 0;
                     }
                 }
             }
-            // printf("\ni is; %d\n", i);
-            done = 0;
-            printf("\ndead kids: %d num of kids %d\n\n", finishedpid, atoi(argv[1]));
-            i++;
             sleep(1);
+                        // printf("done exe %d\n", done_executables);
+            // printf("total exe %d\n", total_executables);
+         }
+         done_executables += batch_size;
         }
-        batch++;
-        inc = 0;    
-    } 
-    // for (i = 0; i < numStudents; i++){
-    //     if (strlen(scores[i]) > 0) {
-    //         printf("\n%s\n",scores[i]);
-    //     }
-    // }       
-    return 0;
- }        
+    }
+    fclose(file);
+}
 
-            
