@@ -15,6 +15,8 @@ Member Names and x500's: Bhuvan Sakhamuru (sakha019), Van Le (lexxx668), Yeamela
 Contributions:
 
 Bhuvan : Worked on printing to file and ctemplate.c and also having the outputs in the right order
+Yeamelack: Worked on the logic and code to make sure we get the correct output
+Van: Worked on the logic and code to make sure we get the correct output
 
 
 
