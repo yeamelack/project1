@@ -18,5 +18,7 @@ Bhuvan : Worked on printing to file and ctemplate.c and also having the outputs 
 Yeamelack: Worked on the logic and code to make sure we get the correct output
 Van: Worked on the logic and code to make sure we get the correct output
 
+Answer to question: with parallelism the benefit we saw was we could run multiple different problems at the same time, which was faster than running them one by one. but the proformance wouldnt improve in the same way for default soluion executable template because were not really computing anything within the code most of the time spent on it is the overhead of system calls, forking, waiting child processe, etc. since were arent computing anything or doing anything cpu intensive we see little to no benefits of running this in parallel with each other.
+
 
 
